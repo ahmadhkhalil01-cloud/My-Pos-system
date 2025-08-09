@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <!-- Left Column: Inventory / Actions -->
+  <div class="col-lg-7 mb-3">
+    <div class="card p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Inventory</h5>
+        <div>
+          <input id="globalSearch" class="form-control form-control-sm search-input" placeholder="Search parts (instant)..." value="{{ request.args.get('q','') }}">
+        </div>
+      </div>
+
+      <div class="row g-2" id="inventoryList">
+        <!-- Products -->
+        {% for p in products %}
+        <div class="col-md-6" data-name="{{ p.name|lower }}">
+          <div class="card p-2 inventory-card">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="mb-1">{{ p.name }}</h6>
+                <div class="small-muted">Price: {{ '%.2f'|format(p.price) }}  •  Stock: {{ p.stock }}</div>
+              </div>
+              <form method="post" class="d-flex align-items-center" style="gap:.5rem;">
+                <input type="hidden" name="action" value="add_product">
+                <input type="hidden" name="product_name" value="{{ p.name }}">
+                <input type="number" class="form-control form-control-sm" name="quantity" value="1" min="1" style="width:80px;">
+                <button class="btn btn-sal btn-sm" type="submit">Add</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <hr class="my-3">
+
+      <div class="row g-2">
+        <div class="col-md-6">
+          <h6>Oil Changes</h6>
+          {% for o in oils %}
+          <div class="d-flex justify-content-between align-items-center mb-2" data-name="{{ o.name|lower }}">
+            <div>
+              <strong>{{ o.name }}</strong><div class="small-muted">{{ '%.2f'|format(o.price) }} • Stock: {{ o.stock }}</div>
+            </div>
+            <form method="post" class="d-flex align-items-center" style="gap:.5rem;">
+              <input type="hidden" name="action" value="add_oil">
+              <input type="hidden" name="oil_name" value="{{ o.name }}">
+              <input type="number" class="form-control form-control-sm" name="quantity" value="1" min="1" style="width:80px;">
+              <button class="btn btn-outline-warning btn-sm" type="submit">Oil</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="col-md-6">
+          <h6>Wheel Changes</h6>
+          {% for w in wheels %}
+          <div class="d-flex justify-content-between align-items-center mb-2" data-name="{{ w.name|lower }}">
+            <div>
+              <strong>{{ w.name }}</strong><div class="small-muted">{{ '%.2f'|format(w.price) }} • Stock: {{ w.stock }}</div>
+            </div>
+            <form method="post" class="d-flex align-items-center" style="gap:.5rem;">
+              <input type="hidden" name="action" value="add_wheel">
+              <input type="hidden" name="wheel_name" value="{{ w.name }}">
+              <input type="number" class="form-control form-control-sm" name="quantity" value="1" min="1" style="width:80px;">
+              <button class="btn btn-outline-warning btn-sm" type="submit">Wheel</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <hr class="my-3">
+
+      <div class="row g-2">
+        <div class="col-md-6">
+          <h6>Service (خدمة)</h6>
+          <form method="post" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="action" value="add_service">
+            <input class="form-control form-control-sm" name="service_name" placeholder="Service name (e.g. Oil Drain)" required>
+            <input class="form-control form-control-sm" name="service_price" placeholder="Price" required>
+            <button class="btn btn-outline-info btn-sm" type="submit">Add</button>
+          </form>
+        </div>
+        <div class="col-md-6">
+          <h6>Used Part (قطعة مستعملة)</h6>
+          <form method="post" class="d-flex gap-2 align-items-center">
+            <input type="hidden" name="action" value="add_used_part">
+            <input class="form-control form-control-sm" name="part_name" placeholder="Part name (قطعة مستعملة)" required>
+            <input class="form-control form-control-sm" name="part_price" placeholder="Price" required>
+            <button class="btn btn-outline-secondary btn-sm" type="submit">Add</button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Right Column: Cart -->
+  <div class="col-lg-5">
+    <div class="card p-3 mb-3">
+      <h5>Receipt <small class="muted">#{{ receipt_id }}</small></h5>
+
+      <table class="table table-dark table-sm mt-2">
+        <thead>
+          <tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Sub</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for item in receipt_items %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td style="min-width:120px;">{{ item.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ '%.2f'|format(item.price) }}</td>
+            <td>{{ '%.2f'|format(item.price * item.quantity) }}</td>
+            <td>
+              <form method="post" action="{{ url_for('remove_from_cart', index=loop.index0) }}" style="display:inline">
+                <button class="btn btn-sm btn-outline-danger" type="submit" title="Remove">✖</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="text-center muted">No items in receipt</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <div><strong>Total:</strong> {{ '%.2f'|format(total) }}</div>
+        <div>
+          <form method="post" style="display:inline">
+            <input type="hidden" name="action" value="finalize_cash">
+            <button class="btn btn-sal btn-sm">Finalize Cash</button>
+          </form>
+          <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#creditModal">ديونات</button>
+          <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#medgulfModal">MedGulf</button>
+        </div>
+      </div>
+
+      <hr class="my-2">
+
+      <div class="d-flex gap-2">
+        <a class="btn btn-light btn-sm flex-fill" href="{{ url_for('report_daily') }}">Download Daily Report</a>
+        <a class="btn btn-light btn-sm" href="{{ url_for('report_debts') }}">تقرير الديونات</a>
+        <a class="btn btn-light btn-sm" href="{{ url_for('report_medgulf') }}">MedGulf</a>
+      </div>
+    </div>
+
+    <div class="card p-3">
+      <h6>Quick actions</h6>
+      <div class="d-grid gap-2">
+        <a class="btn btn-outline-info" href="{{ url_for('inventory') }}">Open Inventory (admin)</a>
+        <a class="btn btn-outline-secondary" href="{{ url_for('logout') }}">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Credit Modal -->
+<div class="modal fade" id="creditModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Finalize Credit</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="action" value="finalize_credit">
+        <div class="mb-2">
+          <label class="form-label">Customer name</label>
+          <input name="customer_name" class="form-control" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+        <button class="btn btn-sal" type="submit">Confirm Credit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MedGulf Modal -->
+<div class="modal fade" id="medgulfModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Finalize MedGulf</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="action" value="finalize_medgulf">
+        <div class="mb-2">
+          <label class="form-label">Customer name</label>
+          <input name="customer_name" class="form-control" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+        <button class="btn btn-sal" type="submit">Confirm MedGulf</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // instant client-side filter for inventory items
+  const searchInput = document.getElementById('globalSearch');
+  const inventoryList = document.getElementById('inventoryList');
+  function filterInventory() {
+    const q = searchInput.value.trim().toLowerCase();
+    const cards = inventoryList.querySelectorAll('[data-name]');
+    cards.forEach(c => {
+      const name = c.getAttribute('data-name') || '';
+      if (!q || name.includes(q)) c.style.display = '';
+      else c.style.display = 'none';
+    });
+  }
+  searchInput && searchInput.addEventListener('input', filterInventory);
+  // init filter on load
+  document.addEventListener('DOMContentLoaded', filterInventory);
+</script>
+{% endblock %}

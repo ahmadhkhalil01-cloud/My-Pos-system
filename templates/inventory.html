@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card p-3 mb-3">
+      <h5>Inventory Management</h5>
+      <form method="get" class="d-flex mb-2" action="{{ url_for('inventory') }}">
+        <input class="form-control me-2" name="q" placeholder="Search part name..." value="{{ q }}">
+        <button class="btn btn-sal">Search</button>
+      </form>
+
+      <div class="mb-3">
+        <h6>Products</h6>
+        <ul class="list-group list-group-flush">
+          {% for p in products %}
+            <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
+              <div>{{ p.name }} <small class="small-muted">({{ p.stock }})</small></div>
+              <div class="small-muted">{{ '%.2f'|format(p.price) }}</div>
+            </li>
+          {% else %}
+            <li class="list-group-item bg-transparent text-muted">No products</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="mb-3">
+        <h6>Oils</h6>
+        <ul class="list-group list-group-flush">
+          {% for o in oils %}
+            <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
+              <div>{{ o.name }} <small class="small-muted">({{ o.stock }})</small></div>
+              <div class="small-muted">{{ '%.2f'|format(o.price) }}</div>
+            </li>
+          {% else %}
+            <li class="list-group-item bg-transparent text-muted">No oils</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div>
+        <h6>Wheels</h6>
+        <ul class="list-group list-group-flush">
+          {% for w in wheels %}
+            <li class="list-group-item bg-transparent text-light d-flex justify-content-between align-items-center">
+              <div>{{ w.name }} <small class="small-muted">({{ w.stock }})</small></div>
+              <div class="small-muted">{{ '%.2f'|format(w.price) }}</div>
+            </li>
+          {% else %}
+            <li class="list-group-item bg-transparent text-muted">No wheels</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card p-3 mb-3">
+      <h5>Add / Import</h5>
+
+      <form method="post" class="mb-3">
+        <input type="hidden" name="action" value="add_product">
+        <div class="mb-2">
+          <input class="form-control" name="product_name" placeholder="Product name" required>
+        </div>
+        <div class="row g-2">
+          <div class="col">
+            <input class="form-control" name="buy_price" placeholder="Buy price" required>
+          </div>
+          <div class="col">
+            <input class="form-control" name="sell_price" placeholder="Sell price" required>
+          </div>
+          <div class="col">
+            <input class="form-control" name="stock" placeholder="Stock" required>
+          </div>
+        </div>
+        <div class="mt-2"><button class="btn btn-sal">Add Product</button></div>
+      </form>
+
+      <form method="post" class="mb-3">
+        <input type="hidden" name="action" value="add_oil">
+        <div class="mb-2"><input class="form-control" name="oil_name" placeholder="Oil name" required></div>
+        <div class="row g-2">
+          <div class="col"><input class="form-control" name="buy_price" placeholder="Buy price" required></div>
+          <div class="col"><input class="form-control" name="sell_price" placeholder="Sell price" required></div>
+          <div class="col"><input class="form-control" name="stock" placeholder="Stock" required></div>
+        </div>
+        <div class="mt-2"><button class="btn btn-sal">Add Oil</button></div>
+      </form>
+
+      <form method="post">
+        <input type="hidden" name="action" value="add_wheel">
+        <div class="mb-2"><input class="form-control" name="wheel_name" placeholder="Wheel name" required></div>
+        <div class="row g-2">
+          <div class="col"><input class="form-control" name="buy_price" placeholder="Buy price" required></div>
+          <div class="col"><input class="form-control" name="sell_price" placeholder="Sell price" required></div>
+          <div class="col"><input class="form-control" name="stock" placeholder="Stock" required></div>
+        </div>
+        <div class="mt-2"><button class="btn btn-sal">Add Wheel</button></div>
+      </form>
+
+    </div>
+    <div class="card p-3">
+      <h6>Tips</h6>
+      <ul>
+        <li class="small-muted">Use the search bar to quickly find parts by name.</li>
+        <li class="small-muted">Add items here; they'll instantly appear in POS inventory.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
