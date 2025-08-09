@@ -1,10 +1,13 @@
 services:
   - type: web
-    name: pos-system
-    env: python
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    name: salimco-pos
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn pos_app:app"
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.10
+      - key: DATABASE_URL
+        fromDatabase:
+          name: salimco_pos
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
